@@ -23,11 +23,20 @@ public class TopicoController {
     @Transactional
     @PostMapping
     public ResponseEntity registrar(@RequestBody @Valid DatosRegistroTopico datos, UriComponentsBuilder uriComponentsBuilder) {
+        // Validar duplicado por título
+        if (repository.existsByTitulo(datos.titulo())) {
+            return ResponseEntity.badRequest().body("Ya existe un tópico con ese título.");
+        }
+
+        // Validar duplicado por mensaje
+        if (repository.existsByMensaje(datos.mensaje())) {
+            return ResponseEntity.badRequest().body("Ya existe un tópico con ese mensaje.");
+        }
+
         var topico = new Topico(datos);
         repository.save(topico);
 
         var uri = uriComponentsBuilder.path("/topico/{id}").buildAndExpand(topico.getId()).toUri();
-
         return ResponseEntity.created(uri).body(new DatosDetalleTopico(topico));
     }
 
